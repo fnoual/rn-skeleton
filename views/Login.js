@@ -1,21 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Modal, View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from "axios";
+import Camera from '../components/Camera';
 
-export default function Login({navigation}) {
+export default function Login({ navigation }) {
+    useEffect(() => {
+    })
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState(null);
+    const [eventId, setEventId] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const fillEventInput = (value) => {
+        setEventId(value.data);
+        setModalVisible(false);
+    }
     const login = () => {
-        axios.post('http://192.168.68.50:8000/api/v1/customer/login', {
+        axios.post('http://192.168.100.39:8000/api/v1/customer/login', {
             email,
             password
         }).then((response) => {
             console.log(JSON.stringify(response.data, null, 2));
+            navigation.navigate('SignUp')
+
         }).catch((e) => {
             setErrors(e.response.data)
-            navigation.navigate('SignUp')
         })
     }
     return (
@@ -30,25 +40,41 @@ export default function Login({navigation}) {
                     {errors && (
                         <View style={styles.errorContainer}>
                             <Text style={styles.errorText}>{errors.message}</Text>
-                            {Object.keys(errors.errors).map((key) => (
-                                errors.errors[key].map((error, index) => (
-                                    <Text key={`${key}-${index}`} style={styles.errorText}>{error}</Text>
-                                ))
-                            ))}
                         </View>
                     )}
                     <TextInput style={styles.input} placeholder='Phone / Email' value={email} onChangeText={setEmail} />
                     <TextInput style={styles.input} placeholder='Password' value={password} onChangeText={setPassword} secureTextEntry />
                     <View style={styles.eventIdContainer}>
-                        <TextInput style={styles.eventIdInput} placeholder='EventId' />
-                        <TouchableOpacity style={styles.iconContainer}>
+                        <TextInput style={styles.eventIdInput} value={eventId} placeholder='ID de l événement' />
+                        <TouchableOpacity style={styles.iconContainer} onPress={() => setModalVisible(true)}>
                             <Icon name="qrcode-scan" size={24} color="gray" />
                         </TouchableOpacity>
                     </View>
-                    <TouchableOpacity style={styles.cameraContainer} onPress={login}>
+                    <TouchableOpacity style={styles.loginButton} onPress={login}>
                         <Text>Login</Text>
                     </TouchableOpacity>
                 </View>
+
+                <Modal
+                    animationType="slide"
+                    transparent={false}
+                    visible={modalVisible}
+                    onRequestClose={() => {
+                        Alert.alert('Modal has been closed.');
+                        setModalVisible(!modalVisible);
+                    }}>
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                            <Text style={styles.modalText}>Passez le scanner sur votre badge</Text>
+                            <Camera onBarcodeScan={fillEventInput} />
+                            <Pressable
+                                style={[styles.button, styles.buttonClose]}
+                                onPress={() => setModalVisible(!modalVisible)}>
+                                <Text style={styles.textStyle}>Fermer</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </Modal>
             </ScrollView>
         </View>
     );
@@ -132,7 +158,7 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         color: 'gray',
     },
-    cameraContainer: {
+    loginButton: {
         justifyContent: 'center',
         alignItems: 'center',
         borderColor: 'gray',
@@ -140,5 +166,51 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 20,
         width: '100%',
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    button: {
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+    },
+    buttonOpen: {
+        backgroundColor: '#F194FF',
+    },
+    buttonClose: {
+        backgroundColor: '#2196F3',
+    },
+    textStyle: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    modalText: {
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    camera: {
+        width: 300,
+        height: 400,
+        marginBottom: 15,
     },
 });

@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Login from './views/Login';
-import axios from "axios"
+import Register from './views/Register';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,7 +30,7 @@ export default function App() {
               component={Login}
               options={{ headerShown: false }}
             />
-            <Stack.Screen name="SignUp" component={SignUpScreen} />
+            <Stack.Screen name="SignUp" component={Register} />
           </>
         )}
       </Stack.Navigator>
